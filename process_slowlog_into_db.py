@@ -14,26 +14,6 @@ from sys import argv
 
 
 line_status = 0
-line_list = []
-
-
-def process_timesamp(l):
-    # 处理SET timestamp
-    if l.startswith('SET timestamp='):
-        res = l.replace(';', '').split('=')
-        return [res[1]]
-
-
-def process_sql_statement(l):
-    # 获取SQL 语句
-    return [l]
-
-
-def process_time(l):
-    # # Time:
-    if l.startswith('# Time:'):
-        res = l.replace(' ', '').strip().split('Time:')[1]
-        return [res]
 
 
 def process_user_host(l):
@@ -50,20 +30,44 @@ def process_querylock_time(l):
         return [res[1], res[3], res[5], res[7]]
 
 
+def process_timesamp(l):
+    # 处理SET timestamp
+    if l.startswith('SET timestamp='):
+        res = l.replace(';', '').split('=')
+        return [res[1]]
+
+
+def process_sql_statement(l):
+    # 获取SQL 语句
+    return [l]
+
+# def process_time(l):
+#     # # Time:
+#     if l.startswith('# Time:'):
+#         res = l.replace(' ', '').strip().split('Time:')[1]
+#         return [res]
+
+
 def process_row_by_row(l):
     global line_status
     # pass
-    if l.find('#') >= 0 and l.find('Time:') >= 0:
-        return process_time(l)
-    elif l.find('#') >= 0 and l.find('User@Host:') > 0 and l.find('Id:') >= 0:
+    if l.find('#') >= 0 and l.find('User@Host:') > 0 and l.find('Id:') >= 0:
+        line_status = 1
         return process_user_host(l)
+    # elif l.find('#') >= 0 and l.find('Time:') >= 0:
+    #     return process_time(l)
     elif l.find('#') >= 0 and l.find('Query_time:') >= 0 and l.find('Lock_time:') >= 0 and l.find('Rows_sent:') >= 0 and l.find('Rows_examined:') >= 0:
+        line_status = 2
         return process_querylock_time(l)
     elif l.find('SET') >= 0 and l.find('timestamp=') >= 0:
+        line_status = 3
         return process_timesamp(l)
     else:
-        line_status = 4
-        return process_sql_statement(l)
+        if line_status != 3 or line_status == 0:
+            return 0
+        else:
+            line_status = 4
+            return process_sql_statement(l.replace(';', '').replace(',', ''))
 
 
 def combine_query_statement(line_list):
@@ -73,17 +77,28 @@ def combine_query_statement(line_list):
         output += col + "','"
     return "('" + output.rstrip("'").rstrip(",") + ")"
 
-slowlog = 'slow.log'
-f = open(str(slowlog), 'r')
-while True:
-    # pass
-    line = f.readline()
-    if not line:
-        break
-    l = line.strip()
-    tmp_list = process_row_by_row(l)
-    line_list.append(tmp_list)
 
-arr = line_list
-
-# 将line_list 转换成SQL 格式
+def do_cmd():
+    line_list = []
+    arr = []
+    values_count = 0
+    slowlog = 'slow.log'
+    # insert_tbl = 'insert into tablename values '
+    f = open(str(slowlog), 'r')
+    while True:
+        # pass
+        line = f.readline()
+        if not line:
+            break
+        l = line.strip()
+        tmp_list = process_row_by_row(l)
+        if tmp_list != 0:
+            line_list += tmp_list
+            if line_status != 0 and line_status % 4 == 0:
+                query_values = ''
+                query_values = combine_query_statement(line_list)
+                line_list = []
+                if values_count == 1:
+                    arr.append(query_values + ',')
+                values_count = 1
+    return arr
