@@ -1,0 +1,33 @@
+# Time: 2017-01-20T09:33:18.704450+08:00
+# User@Host: user_spzh_or[user_spzh_or] @  [10.205.52.24]  Id: 137686
+# Query_time: 1.782185  Lock_time: 0.000094 Rows_sent: 22459  Rows_examined: 22459
+SET timestamp=1484875998;
+SELECT * FROM spzh.ac_retire_list;
+# Time: 2017-01-20T09:33:19.094688+08:00
+# User@Host: user_spzh_or[user_spzh_or] @  [10.205.52.24]  Id: 137691
+# Query_time: 1.760822  Lock_time: 0.000026 Rows_sent: 0  Rows_examined: 371481
+SET timestamp=1484875999;
+SELECT * FROM spzh.ac_yonghu;
+# Time: 2017-01-20T09:33:20.203672+08:00
+# User@Host: user_spzh_or[user_spzh_or] @  [10.205.52.24]  Id: 137685
+# Query_time: 3.282591  Lock_time: 0.000177 Rows_sent: 369055  Rows_examined: 369055
+SET timestamp=1484876000;
+select * from spzh.ac_zuhe_set;
+# Time: 2017-01-20T09:33:20.834724+08:00
+# User@Host: user_spzh_or[user_spzh_or] @  [10.205.52.24]  Id: 137690
+# Query_time: 3.912636  Lock_time: 0.000103 Rows_sent: 77475  Rows_examined: 159455
+SET timestamp=1484876000;
+SELECT * FROM spzh.ac_race_invite
+UNION
+SELECT * FROM spzh.ac_race_invite_118;
+# Time: 2017-01-20T09:33:20.898269+08:00
+# User@Host: user_spzh_or[user_spzh_or] @  [10.205.52.24]  Id: 137684
+# Query_time: 3.976426  Lock_time: 0.000042 Rows_sent: 241742  Rows_examined: 241742
+SET timestamp=1484876000;
+SELECT * FROM spzh.ac_rankinglist;
+# Time: 2017-01-20T09:33:22.947020+08:00
+# User@Host: user_spzh_or[user_spzh_or] @  [10.205.52.24]  Id: 137688
+# Query_time: 6.025884  Lock_time: 0.000196 Rows_sent: 143916  Rows_examined: 143916
+SET timestamp=1484876002;
+select infoStr0 as Adid,case when infoStr1='' then null else infoStr1 end as clicktime,
+infoStr2,infoStr3,curTm,uid,zuheId from spzh.big_data_infos;
