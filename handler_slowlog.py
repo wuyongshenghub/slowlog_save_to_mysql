@@ -17,7 +17,9 @@ def read_slow_log_to_list(file_name):
             line = line.strip()
             if line.startswith('#'):
                 sql.append(line)
-            elif line.startswith('SET') or line.startswith('USE'):
+            elif line.startswith('SET'):
+                sql.append(line)
+            elif line.startswith('USE'):
                 continue
             else:
                 if line.endswith(';'):
@@ -42,6 +44,7 @@ def read_slow_log_to_list(file_name):
 def handler_slowlog(file_name):
     res = read_slow_log_to_list(file_name)
     for res in res:
+        # print res
         # time = res[0]
         # User@Host 信息
         userhost = res[1]
@@ -61,10 +64,20 @@ def handler_slowlog(file_name):
         # 完成查询需要评估行数量
         rows_examined = querytime.replace('# ', '').split()[7]
         # print exec_duration, rows_sent, rows_examined
+        # 开始时间
+        start_time = res[3].replace(';','').split('=')[1]
         # 慢SQL语句
-        slowsql = res[3]
-        # print db_user, app_ip, thread_id, exec_duration, rows_sent, rows_examined, slowsql
+        slowsql = res[4]
+        print start_time, db_user, app_ip, thread_id, exec_duration, rows_sent, rows_examined, slowsql
+         
         # 入库
+        '''
+        create table slow_log(
+        id bigint(11) not null unsigned auto_increment,
+        
+        )
+
+        '''
 
         break
 
