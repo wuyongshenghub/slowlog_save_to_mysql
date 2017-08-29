@@ -1,6 +1,17 @@
 # encoding:utf-8
 import os
 import sys
+import MySQLdb
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+# 连接数据库
+try:
+    conn = MySQLdb.connect(host='192.168.137.11', port=3376,
+                           user='root', passwd='123456', db='myapp', charset='utf8')
+    conn.autocommit(True)
+except Exception as e:
+    print e
 
 
 def read_slow_log_to_list(file_name):
@@ -65,21 +76,50 @@ def handler_slowlog(file_name):
         rows_examined = querytime.replace('# ', '').split()[7]
         # print exec_duration, rows_sent, rows_examined
         # 开始时间
-        start_time = res[3].replace(';','').split('=')[1]
+        start_time = res[3].replace(';', '').split('=')[1]
         # 慢SQL语句
         slowsql = res[4]
-        print start_time, db_user, app_ip, thread_id, exec_duration, rows_sent, rows_examined, slowsql
-         
+        # print start_time, db_user, app_ip, thread_id, exec_duration, rows_sent, rows_examined, slowsql
+
         # 入库
         '''
         create table slow_log(
-        id bigint(11) not null unsigned auto_increment,
-        
-        )
+        id bigint(11) unsigned not null auto_increment,
+        start_time int(11) unsigned not null default 0 comment '开始时间',
+        db_user varchar(20) not null default '' comment '程序连接数据库用户名',
+        app_ip varchar(15) not null default '' comment '应用服务器IP',
+        thread_id int(11) unsigned not null default 0 comment '线程id',
+        exec_duration decimal(8,6) not null default 0 comment 'SQL执行时长单位秒',
+        rows_sent int(11) unsigned not null default 0 comment '结果集返回记录数量',
+        rows_examined int(11) unsigned not null default 0 comment '评估记录数量',
+        slowsql varchar(100) not null default '' comment '慢SQL语句',
+        primary key(id),
+        key idx_start_time(start_time)        
+        )engine = innodb default charset=utf8;
 
         '''
+        # 表中需要插入数据的列名
+        fields = ['start_time', 'db_user', 'app_ip', 'thread_id',
+                  'exec_duration', 'rows_sent', 'rows_examined', 'slowsql']
+        # 慢查询日志文件中的切割后的值
+        val = (start_time, db_user, app_ip, thread_id,
+               exec_duration, rows_sent, rows_examined, slowsql)
+        do_save_to_mysql('slow_log', ','.join(fields), val)
 
         break
+
+
+def do_save_to_mysql(table, fields, param):
+
+    sql = "insert into %s(%s) values %s" % (table, fields, param)
+    print sql
+    cur = conn.cursor()
+
+    try:
+        cur.execute(sql)
+
+    except Exception as e:
+        print "入库错误:%s" % (e)
 
 
 if __name__ == '__main__':
