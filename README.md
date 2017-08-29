@@ -32,5 +32,5 @@
 		)engine = innodb default charset=utf8;
 
 		实现结果：
-		
+		![image](https://github.com/wuyongshenghub/slowlog_into_mysql/blob/master/pic/save_slowlog_to_db.png)
 
